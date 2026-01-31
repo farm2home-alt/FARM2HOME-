@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="ml">
 <head>
     <meta charset="UTF-8">
@@ -14,15 +14,19 @@
             --bg: #f4f8f4;
         }
         header { 
-        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('bg.jpg');
-        background-size: cover;
-        background-position: center;
-        color: #FFC300; 
-        text-align: center; 
-        padding: 40px 20px; 
-        border-radius: 0 0 20px 20px; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
-    }
+    /* ബാക്ക്ഗ്രൗണ്ട് ഇമേജ് സെറ്റ് ചെയ്യുന്നു */
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    color: #FFC300; 
+    text-align: center; 
+    padding: 60px 20px; /* ഹൈറ്റ് അല്പം കൂട്ടി */
+    border-radius: 0 0 20px 20px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+}
+
     header h1 {
     font-family: 'Clash Display', sans-serif;
     font-weight: 700; /* Extra Bold ലുക്കിന് */
@@ -122,7 +126,7 @@
                 <input type="text" id="pName" placeholder="വിളയുടെ പേര്">
                 <input type="text" id="pPrice" placeholder="വില (₹/Kg)">
                 <input type="text" id="fName" placeholder="കർഷകൻ്റെ പേര്">
-                <button class="btn-main" onclick="addFarmerProduct()">ലിസ്റ്റിൽ ചേർക്കുക</button>
+                <button class="btn-main" onclick="uploadData()">ലിസ്റ്റിൽ ചേർക്കുക</button>
             </div>
 
             <h3>നിങ്ങൾ ചേർത്ത ഉൽപ്പന്നങ്ങൾ 📋</h3>
@@ -145,7 +149,7 @@
             <h2 style="text-align: center; color: var(--primary);">ലഭ്യമായ ഉൽപ്പന്നങ്ങൾ 🥗</h2>
             <div id="customerProductList" class="product-grid"></div>
             
-
+            
             <button class="btn-orange" id="boxBtn" onclick="showBoxDetails()">🛒 എന്റെ പെട്ടി കാണുക (0)</button>
 
 <div id="boxModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000;">
@@ -358,6 +362,81 @@ function applyBarterDiscount() {
     
     
 </script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+  // നിങ്ങളുടെ ഫയർബേസ് കോൺഫിഗറേഷൻ
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyArvf9DWqivdzRArdJyRDH0Wq0NOfvs1ik",
+  authDomain: "farm-2-home-defe4.firebaseapp.com",
+  databaseURL: "https://farm-2-home-defe4-default-rtdb.firebaseio.com",
+  projectId: "farm-2-home-defe4",
+  storageBucket: "farm-2-home-defe4.firebasestorage.app",
+  messagingSenderId: "825061986053",
+  appId: "1:825061986053:web:5c1fa9652dd89d5433716c",
+  measurementId: "G-9FWC46TPPR"
+};
+  // Firebase Initialize ചെയ്യുന്നു
+  if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+  }
+  const database = firebase.database();
+
+  // ഡാറ്റ അപ്‌ലോഡ് ചെയ്യാനുള്ള ഫംഗ്ഷൻ
+  function uploadData() {
+    var name = document.getElementById('pName').value;
+    var price = document.getElementById('pPrice').value;
+
+    if(name == "" || price == "") {
+        alert("ദയവായി പേരും വിലയും നൽകുക!");
+        return;
+    }
+
+    database.ref('products/').push({
+      productName: name,
+      price: price
+    }).then(() => {
+      alert("സാധനം വിജയകരമായി ചേർത്തു! ✅");
+      document.getElementById('pName').value = "";
+      document.getElementById('pPrice').value = "";
+    });
+  }
+
+  // മറ്റൊരു ഫോണിലും ഡാറ്റ കാണാൻ സഹായിക്കുന്ന ലിസ്റ്റ്
+  const itemContainer = document.getElementById('items-container');
+  if(itemContainer) {
+    database.ref('products/').on('value', (snapshot) => {
+      itemContainer.innerHTML = ""; 
+      snapshot.forEach((childSnapshot) => {
+        var childData = childSnapshot.val();
+        itemContainer.innerHTML += `
+          <div class="product-card" style="border:1px solid #2e7d32; padding:10px; margin:10px; border-radius:10px; background:white;">
+            <h4>${childData.productName}</h4>
+            <p>വില: ₹${childData.price} / KG</p>
+          </div>
+        `;
+      });
+    });
+  }
+  // ഫയർബേസിൽ നിന്ന് സാധനങ്ങൾ വലിച്ച് കാണിക്കാൻ
+database.ref('products/').on('value', (snapshot) => {
+    const list = document.getElementById('customerProductList'); // Image 1000075629 ലെ ID
+    list.innerHTML = ""; 
+    snapshot.forEach((childSnapshot) => {
+        const data = childSnapshot.val();
+        list.innerHTML += `
+            <div class="product-item">
+                <h4>${data.productName}</h4>
+                <p>₹${data.price}</p>
+                <button class="btn-main" onclick="addToBox('${data.productName}')">📦 പെട്ടിയിലേക്ക്</button>
+            </div>`;
+    });
+});
+
+</script>
+
 
 </body>
 </html>
