@@ -437,8 +437,7 @@ database.ref('products/').on('value', (snapshot) => {
     });
 });
 
-</script>
-async function analyzePlant() {
+  async function analyzePlant() {
     const fileInput = document.getElementById('plantImage');
     const resultDiv = document.getElementById('aiResult');
     const apiKey = "AIzaSyATlbJsyXmC0zO6jwxvGQS38lhKJ69sXBk"; // നിങ്ങളുടെ API Key
@@ -481,7 +480,9 @@ async function analyzePlant() {
         }
     };
     reader.readAsDataURL(file);
-}
+  }
+
+</script>
   
 
 </body>
